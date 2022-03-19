@@ -46,6 +46,10 @@ def fetch_latest_year_term():
     return res[0]
 
 def push_slack_webhook(message):
+    """
+    Args:
+        message -> string
+    """
     payload = {
         "text": message
     }
@@ -55,3 +59,20 @@ def push_slack_webhook(message):
     except requests.exceptions.HTTPError as e:
         print(f"push_slack_webhook() error: {e}")
         exit(1)
+
+def is_new_term(year_term):
+    """
+    Args:
+        year_term -> (year: int, term: int)
+    
+    Return:
+        is_new :bool
+    """
+
+    db_year_term = fetch_latest_year_term()
+    if year_term[0] > db_year_term[0]:
+        return True
+    elif year_term[0] < db_year_term[0]:
+        return False
+    else:
+        return year_term[1] > db_year_term[1]
