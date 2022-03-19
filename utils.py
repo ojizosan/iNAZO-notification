@@ -76,3 +76,19 @@ def is_new_term(year_term):
         return False
     else:
         return year_term[1] > db_year_term[1]
+
+def get_latest_year_term(year_term_list):
+    """
+    Args:
+        year_term_list -> List[(year: int, term: int)]
+    
+    Return:
+        year_term -> (year: int, term: int)
+    """
+
+    if len(year_term_list) == 0:
+        raise Exception("get_latest_year_term() error: データが空です")
+    
+    year_term_list.sort(reverse=True)
+
+    return year_term_list[0]
