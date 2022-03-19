@@ -9,6 +9,7 @@ start = "python main.py"
 [packages]
 bs4 = "*"
 requests = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

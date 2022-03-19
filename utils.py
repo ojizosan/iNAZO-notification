@@ -1,6 +1,7 @@
 import bs4
 import requests
 import sqlite3
+import json
 
 import settings
 
@@ -43,3 +44,14 @@ def fetch_latest_year_term():
     conn.close()
 
     return res[0]
+
+def push_slack_webhook(message):
+    payload = {
+        "text": message
+    }
+    try:
+        res = requests.post(settings.SLACK_WEBHOOK_URL, data=json.dumps(payload))
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        print(f"push_slack_webhook() error: {e}")
+        exit(1)
