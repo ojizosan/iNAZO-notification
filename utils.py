@@ -6,17 +6,44 @@ import json
 
 import settings
 
-def get_html(url):
-    res = requests.get(url)
+
+def fetch_html(url):
+    """
+    Args:
+        url -> string
+
+    Return:
+        html -> string
+    """
+    try:
+        res = requests.get(url)
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        error(f"fetch_html() error: {e}")
+
     return res.text
 
-def get_terms(html):
-    soup = BeautifulSoup(html, 'html.parser')
 
-    options = [o.text for o in soup.find('select', id='ddlTerm').find_all('option') if o.text != '---------------']
-    
-    results = [tuple(map(int, re.findall(r'\d+', o))) for o in options]
+# TODO: parser errorに対応
+def get_year_terms(html):
+    """
+    Args:
+        html -> string
+
+    Return:
+        year_term_list -> List[(year: int, term: int)]
+    """
+    soup = BeautifulSoup(html, "html.parser")
+
+    options = [
+        o.text
+        for o in soup.find("select", id="ddlTerm").find_all("option")
+        if o.text != "---------------"
+    ]
+
+    results = [tuple(map(int, re.findall(r"\d+", o))) for o in options]
     return results
+
 
 def insert_year_term(year_term):
     """
@@ -33,6 +60,7 @@ def insert_year_term(year_term):
     cur.close()
     conn.close()
 
+
 def fetch_latest_year_term():
     """
     Return:
@@ -42,9 +70,11 @@ def fetch_latest_year_term():
     conn = sqlite3.connect(settings.DB_NAME)
     cur = conn.cursor()
 
-    res = cur.execute("SELECT year, term FROM gradeterm ORDER BY year DESC, term DESC LIMIT 1").fetchall()
+    res = cur.execute(
+        "SELECT year, term FROM gradeterm ORDER BY year DESC, term DESC LIMIT 1"
+    ).fetchall()
 
-    # len(res)は0か1    
+    # len(res)は0か1
     if len(res) == 0:
         raise Exception("初期データが登録されていません。")
 
@@ -53,26 +83,28 @@ def fetch_latest_year_term():
 
     return res[0]
 
+
 def push_slack_webhook(message):
     """
+    slackのwebhookにpushする。エラーが飽きた場合はログを残して強制終了。
+
     Args:
         message -> string
     """
-    payload = {
-        "text": message
-    }
+    payload = {"text": message}
     try:
         res = requests.post(settings.SLACK_WEBHOOK_URL, data=json.dumps(payload))
         res.raise_for_status()
-    except requests.exceptions.HTTPError as e:
+    except Exception as e:
         print(f"push_slack_webhook() error: {e}")
         exit(1)
+
 
 def is_new_term(year_term):
     """
     Args:
         year_term -> (year: int, term: int)
-    
+
     Return:
         is_new :bool
     """
@@ -85,18 +117,25 @@ def is_new_term(year_term):
     else:
         return year_term[1] > db_year_term[1]
 
+
 def get_latest_year_term(year_term_list):
     """
     Args:
         year_term_list -> List[(year: int, term: int)]
-    
+
     Return:
         year_term -> (year: int, term: int)
     """
 
     if len(year_term_list) == 0:
         raise Exception("get_latest_year_term() error: データが空です")
-    
+
     year_term_list.sort(reverse=True)
 
     return year_term_list[0]
+
+
+def error(message):
+    print(message)
+    push_slack_webhook(message)
+    exit(1)
