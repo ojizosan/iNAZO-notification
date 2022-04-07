@@ -5,12 +5,16 @@ name = "pypi"
 
 [scripts]
 start = "python main.py"
+init  = "python init_db.py"
+format = "black ."
 
 [packages]
 bs4 = "*"
 requests = "*"
+python-dotenv = "*"
 
 [dev-packages]
+black = "*"
 
 [requires]
 python_version = "3.8"
