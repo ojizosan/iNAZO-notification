@@ -1,10 +1,13 @@
 import re
+import sqlite3
+from logging import getLogger
+
 import requests
 from bs4 import BeautifulSoup
-import sqlite3
-import json
 
-import settings
+from src import settings
+
+logger = getLogger(__name__)
 
 
 def fetch_html(url):
@@ -19,7 +22,8 @@ def fetch_html(url):
         res = requests.get(url)
         res.raise_for_status()
     except requests.exceptions.HTTPError as e:
-        error(f"fetch_html() error: {e}")
+        logger.error(f"fetch_html() error: {e}")
+        exit(1)
 
     return res.text
 
@@ -84,22 +88,6 @@ def fetch_latest_year_term():
     return res[0]
 
 
-def push_slack_webhook(message):
-    """
-    slackのwebhookにpushする。エラーが飽きた場合はログを残して強制終了。
-
-    Args:
-        message -> string
-    """
-    payload = {"text": message}
-    try:
-        res = requests.post(settings.SLACK_WEBHOOK_URL, data=json.dumps(payload))
-        res.raise_for_status()
-    except Exception as e:
-        print(f"push_slack_webhook() error: {e}")
-        exit(1)
-
-
 def is_new_term(year_term):
     """
     Args:
@@ -133,9 +121,3 @@ def get_latest_year_term(year_term_list):
     year_term_list.sort(reverse=True)
 
     return year_term_list[0]
-
-
-def error(message):
-    print(message)
-    push_slack_webhook(message)
-    exit(1)

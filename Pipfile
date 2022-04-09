@@ -6,7 +6,7 @@ name = "pypi"
 [scripts]
 start = "python main.py"
 init  = "python init_db.py"
-format = "black ."
+format = "bash -c 'isort . && black .'"
 
 [packages]
 bs4 = "*"
@@ -15,6 +15,7 @@ python-dotenv = "*"
 
 [dev-packages]
 black = "*"
+isort = "*"
 
 [requires]
 python_version = "3.8"

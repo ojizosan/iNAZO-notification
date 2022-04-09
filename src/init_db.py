@@ -1,13 +1,10 @@
 import sqlite3
-import settings
+from logging import getLogger
 
-from utils import (
-    fetch_html,
-    get_year_terms,
-    insert_year_term,
-    get_latest_year_term,
-    error,
-)
+from src import settings
+from src.utils import fetch_html, get_latest_year_term, get_year_terms, insert_year_term
+
+logger = getLogger(__name__)
 
 
 def main():
@@ -28,8 +25,9 @@ def main():
         )
     except sqlite3.OperationalError as e:
         # 既に登録済みの場合など
+        logger.error(f"message: {e}")
         conn.close()
-        error(f"message: {e}")
+        exit(1)
 
     # 初期データの登録
     html = fetch_html(settings.HOKUDAI_GRADE_URL)
